@@ -3,8 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ParcelRadar — API adresi</title>
-  <meta http-equiv="refresh" content="0;url=https://parcelradarnode.onrender.com/" />
+  <title>ParcelRadar — 17TRACK proxy</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 36rem; margin: 2rem auto; padding: 0 1rem; line-height: 1.5; }
     a { color: #0369a1; }
@@ -14,11 +13,17 @@
 <body>
   <h1>ParcelRadar 17TRACK proxy</h1>
   <p>
-    Bu Vercel adresi yalnızca bilgilendirme sayfasıdır.
-    <strong>Node + Puppeteer API</strong> şu adreste çalışır:
+    <strong>Node + Puppeteer</strong> API, kurduğunuz ortamda kendi taban adresinizle çalışır (Render, Railway, VPS, yerel ağ vb.).
+    Sabit bir dış URL yoktur; mobil/web uygulamasında <code>EXPO_PUBLIC_TRACK17_PROXY_URL</code> ile tabanı siz verirsiniz (sonda <code>/</code> olmasın).
   </p>
-  <p><a href="https://parcelradarnode.onrender.com/">https://parcelradarnode.onrender.com/</a></p>
-  <p>Örnek: <code>GET /health</code> · <code>GET /api/track?nums=…&amp;fc=…</code></p>
-  <p>Otomatik yönlendirme çalışmazsa yukarıdaki bağlantıya tıklayın.</p>
+  <p>
+    Aynı host üzerinden hem bu sayfa hem API sunuluyorsa doğrudan deneyin:
+    <a href="/health"><code>GET /health</code></a>
+    ·
+    <a href="/api/track"><code>GET /api/track</code></a> <small>(<code>nums</code> ve <code>fc</code> gerekir)</small>
+  </p>
+  <p>
+    Bu dosya yalnızca statik hostingde (ör. Vercel/Workers) açılıyorsa yukarıdaki bağlantılar o sitenin köküne gider; API başka sunucudaysa tarayıcıda çalışmaz — adresi uygulama ortam değişkeninden kullanın.
+  </p>
 </body>
 </html>

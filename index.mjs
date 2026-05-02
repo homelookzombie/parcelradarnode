@@ -32,6 +32,32 @@ const cors = {
   'Access-Control-Allow-Headers': 'Content-Type, Accept',
 };
 
+/** Dış dünyadaki taban URL (Render/nginx X-Forwarded-*); yoksa dönmez */
+function getRequestPublicBase(req) {
+  const rawProto = req.headers['x-forwarded-proto'];
+  const protoHead =
+    typeof rawProto === 'string'
+      ? rawProto.split(',')[0].trim()
+      : Array.isArray(rawProto)
+        ? String(rawProto[0] || '').split(',')[0].trim()
+        : '';
+  const scheme =
+    protoHead === 'https' || protoHead === 'http'
+      ? protoHead
+      : req.socket?.encrypted
+        ? 'https'
+        : 'http';
+  const rawHost = req.headers['x-forwarded-host'] || req.headers.host;
+  const host =
+    typeof rawHost === 'string'
+      ? rawHost.split(',')[0].trim()
+      : Array.isArray(rawHost)
+        ? String(rawHost[0] || '').split(',')[0].trim()
+        : '';
+  if (!host) return undefined;
+  return `${scheme}://${host}`;
+}
+
 /** Render / küçük VM: bellek ve /dev/shm; istek süresi sınırına uyum */
 const CHROME_ARGS = [
   '--no-sandbox',
@@ -135,7 +161,12 @@ const server = http.createServer(async (req, res) => {
   const path = (u.pathname || '/').replace(/\/$/, '') || '/';
 
   if (path === '/health') {
-    sendJson(res, 200, { ok: true, service: 'parcelradar-track17-server' });
+    const baseUrl = getRequestPublicBase(req);
+    sendJson(res, 200, {
+      ok: true,
+      service: 'parcelradar-track17-server',
+      ...(baseUrl ? { baseUrl } : {}),
+    });
     return;
   }
 
@@ -149,10 +180,12 @@ const server = http.createServer(async (req, res) => {
   const fc = u.searchParams.get('fc');
   if (!nums || !fc) {
     if (path === '/') {
+      const baseUrl = getRequestPublicBase(req);
       sendJson(res, 200, {
         ok: true,
         service: 'parcelradar-track17-server',
         hint: 'GET /health | GET /api/track?nums=BARKOD&fc=17TRACK_CARRIER_KEY',
+        ...(baseUrl ? { baseUrl } : {}),
       });
       return;
     }
