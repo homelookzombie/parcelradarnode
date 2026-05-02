@@ -5,8 +5,9 @@
   "description": "17TRACK Puppeteer proxy — Android/Expo REST JSON API",
   "type": "module",
   "scripts": {
-    "start": "node index.mjs",
-    "probe:headless": "node scripts/probe-headless.mjs",
+    "postinstall": "node scripts/install-chrome.mjs",
+    "start": "node --import ./puppeteer-env.mjs index.mjs",
+    "probe:headless": "node --import ./puppeteer-env.mjs scripts/probe-headless.mjs",
     "probe:rest-replica": "node scripts/probe-rest-replica.mjs"
   },
   "dependencies": {

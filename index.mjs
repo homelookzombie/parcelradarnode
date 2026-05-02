@@ -6,7 +6,7 @@
  *
  * Kurulum: cd server && npm install
  * Çalıştır: npm start   veya   PORT=10000 node index.mjs
- * Render: `PORT` otomatik verilir; yerel: `TRACK17_PROXY_PORT` veya 3847.
+ * Render: `PORT` otomatik; Chromium `postinstall` + `.puppeteer-cache/` (bkz. puppeteer-env.mjs).
  *
  * API:
  *   GET /api/track?nums=BARKOD&fc=17TRACK_CARRIER_KEY
