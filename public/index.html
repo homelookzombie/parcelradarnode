@@ -25,5 +25,8 @@
   <p>
     Bu dosya yalnızca statik hostingde (ör. Vercel/Workers) açılıyorsa yukarıdaki bağlantılar o sitenin köküne gider; API başka sunucudaysa tarayıcıda çalışmaz — adresi uygulama ortam değişkeninden kullanın.
   </p>
+  <p>
+    <strong>Cloudflare Workers</strong> (<code>*.workers.dev</code>): Panelde <code>TRACK17_UPSTREAM</code> değişkenini (gizli veya düz) Node proxy tabanınıza ayarlayın; böylece <code>/health</code> ve <code>/api/track</code> Worker üzerinden arka uca iletilir. Boşsa bu yollar 503 döner.
+  </p>
 </body>
 </html>

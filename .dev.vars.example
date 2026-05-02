@@ -1,0 +1,3 @@
+# wrangler dev — kopyalayip .dev.vars yapin (git'e girmez)
+# Node+Puppeteer proxy tabani, sonunda / olmadan
+TRACK17_UPSTREAM=https://your-node-proxy.example.com
