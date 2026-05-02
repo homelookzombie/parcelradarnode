@@ -8,12 +8,17 @@
     "postinstall": "node scripts/install-chrome.mjs",
     "start": "node --import ./puppeteer-env.mjs index.mjs",
     "probe:headless": "node --import ./puppeteer-env.mjs scripts/probe-headless.mjs",
-    "probe:rest-replica": "node scripts/probe-rest-replica.mjs"
+    "probe:rest-replica": "node scripts/probe-rest-replica.mjs",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "dependencies": {
     "puppeteer": "^24.2.0"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "wrangler": "^4.87.0"
   }
 }
