@@ -87,7 +87,11 @@ async function captureRestJson(nums, fc) {
     args: CHROME_ARGS,
   };
   try {
-    const ex = puppeteer.executablePath?.();
+    const envEx = process.env.PUPPETEER_EXECUTABLE_PATH;
+    const ex =
+      typeof envEx === 'string' && envEx.trim().length > 0
+        ? envEx.trim()
+        : puppeteer.executablePath?.();
     if (typeof ex === 'string' && ex.length > 0) {
       launchOpts.executablePath = ex;
     }
