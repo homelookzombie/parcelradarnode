@@ -4,23 +4,23 @@
  * Android / Expo uygulaması buraya HTTP ister; sunucu headless Chromium ile
  * t.17track.net sayfasını açar, sayfanın attığı `track/restapi` yanıtını JSON olarak döner.
  *
- * Kurulum: cd server && npm install
- * Çalıştır: npm start   veya   PORT=10000 node index.mjs
- * Render: `PORT` otomatik; Chromium `postinstall` + `.puppeteer-cache/` (bkz. puppeteer-env.mjs).
+ * Render: `PORT` otomatik; Chromium `postinstall` + `.puppeteer-cache/` + `puppeteer-env.mjs`.
+ * İstek süresi Render limitlerine sığsın diye sayfa yükleme kısaltıldı; Puppeteer gecikmeli import.
  *
  * API:
  *   GET /api/track?nums=BARKOD&fc=17TRACK_CARRIER_KEY
  *   GET /health  → { "ok": true }
- *
- * Eski uyumluluk: GET /?nums=...&fc=... (aynı JSON)
- *
- * Expo .env: EXPO_PUBLIC_TRACK17_PROXY_URL=http://SUNUCU_IP:3847
  */
 
 import http from 'node:http';
 import { URL } from 'node:url';
 
-import puppeteer from 'puppeteer';
+process.on('unhandledRejection', (reason) => {
+  console.error('[track17-server] unhandledRejection:', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[track17-server] uncaughtException:', err);
+});
 
 const PORT = Number(
   process.env.PORT || process.env.TRACK17_PROXY_PORT || 3847
@@ -32,15 +32,44 @@ const cors = {
   'Access-Control-Allow-Headers': 'Content-Type, Accept',
 };
 
+/** Render / küçük VM: bellek ve /dev/shm; istek süresi sınırına uyum */
+const CHROME_ARGS = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-gpu',
+  '--disable-software-rasterizer',
+  '--disable-extensions',
+  '--no-zygote',
+  '--disable-blink-features=AutomationControlled',
+];
+
+/** Toplam sayfa aşaması ~55s + tarayıcı açılışı (Render HTTP zaman aşımı genelde <100s) */
+const GOTO_TIMEOUT_MS = 50000;
+const POST_GOTO_WAIT_MS = 6000;
+
 /**
  * @returns {Promise<object|null>} 17TRACK track/restapi JSON gövdesi
  */
 async function captureRestJson(nums, fc) {
+  const puppeteer = (await import('puppeteer')).default;
+
   const trackUrl = `https://t.17track.net/en?nums=${encodeURIComponent(nums)}&fc=${encodeURIComponent(String(fc))}`;
-  const browser = await puppeteer.launch({
+
+  const launchOpts = {
     headless: true,
-    args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
-  });
+    args: CHROME_ARGS,
+  };
+  try {
+    const ex = puppeteer.executablePath?.();
+    if (typeof ex === 'string' && ex.length > 0) {
+      launchOpts.executablePath = ex;
+    }
+  } catch {
+    /* varsayılan */
+  }
+
+  const browser = await puppeteer.launch(launchOpts);
   try {
     const page = await browser.newPage();
     await page.setUserAgent(
@@ -66,8 +95,8 @@ async function captureRestJson(nums, fc) {
       }
     });
 
-    await page.goto(trackUrl, { waitUntil: 'networkidle2', timeout: 120000 });
-    await new Promise((r) => setTimeout(r, 8000));
+    await page.goto(trackUrl, { waitUntil: 'networkidle2', timeout: GOTO_TIMEOUT_MS });
+    await new Promise((r) => setTimeout(r, POST_GOTO_WAIT_MS));
     return captured;
   } finally {
     await browser.close();
@@ -119,6 +148,14 @@ const server = http.createServer(async (req, res) => {
   const nums = u.searchParams.get('nums');
   const fc = u.searchParams.get('fc');
   if (!nums || !fc) {
+    if (path === '/') {
+      sendJson(res, 200, {
+        ok: true,
+        service: 'parcelradar-track17-server',
+        hint: 'GET /health | GET /api/track?nums=BARKOD&fc=17TRACK_CARRIER_KEY',
+      });
+      return;
+    }
     sendJson(res, 400, { error: 'nums ve fc sorgu parametreleri zorunlu' });
     return;
   }
@@ -139,8 +176,16 @@ const server = http.createServer(async (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  // eslint-disable-next-line no-console
   console.log(
     `[track17-server] http://0.0.0.0:${PORT}/  GET /api/track?nums=&fc=  |  GET /health`
   );
+  void (async () => {
+    try {
+      const puppeteer = (await import('puppeteer')).default;
+      const ex = puppeteer.executablePath?.();
+      console.log('[track17-server] chromium:', ex ?? '(varsayılan)');
+    } catch (e) {
+      console.error('[track17-server] puppeteer yüklenemedi:', e);
+    }
+  })();
 });

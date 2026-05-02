@@ -16,7 +16,7 @@ const r = spawnSync(cmd, ['puppeteer', 'browsers', 'install', 'chrome'], {
   stdio: 'inherit',
   cwd: serverRoot,
   env: { ...process.env, PUPPETEER_CACHE_DIR: cache },
-  shell: process.platform === 'win32',
+  shell: true,
 });
 
 const code = r.status ?? (r.error ? 1 : 0);
