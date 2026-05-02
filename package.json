@@ -1,0 +1,18 @@
+{
+  "name": "parcelradar-track17-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "17TRACK Puppeteer proxy — Android/Expo REST JSON API",
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs",
+    "probe:headless": "node scripts/probe-headless.mjs",
+    "probe:rest-replica": "node scripts/probe-rest-replica.mjs"
+  },
+  "dependencies": {
+    "puppeteer": "^24.2.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
